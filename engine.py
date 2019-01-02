@@ -67,6 +67,3 @@ class SimulationEngine(object):
 
 if __name__ == '__main__':
     test_engine = SimulationEngine()
-    test_construct = Construct('test_construct')
-    test_engine.add_construct(test_construct)
-    print test_engine.get_construct_list()

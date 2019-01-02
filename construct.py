@@ -48,16 +48,6 @@ class Construct(object):
     def get_output_list(self):
         return output_list
 
-    # inputs are when a command is dependent on other constructs
-    # outputs are when result of the command will be sent to other constructs
-    # arguments are when a command needs some values that are not from other inputs
-    #   and this will be saved with the command
-    # ex. load 'pe' 0x400 --> inputs will be False, 
-    #                         outputs will be True,
-    #                         arguments will be True
-    #                     --> commands will be saved as it is and  will be parsed 
-    #                         when quantum is run... (this I think will give more 
-    #                         freedom to the compiler and whatever...)
     def set_command(self, op_name, quantum_time, function, inputs, outputs, arguments):
         self.quantum_time[op_name] = quantum_time
         self.function[op_name] = function
