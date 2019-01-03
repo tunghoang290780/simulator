@@ -27,6 +27,9 @@ class Construct(object):
     def get_cid(self):
         return self.cid
 
+    def get_crnt_time(self):
+        return self.crnt_time
+
     # entries of the input_list will be a heap
     def add_input(self, cid):
         self.input_list[cid] = []
@@ -48,12 +51,16 @@ class Construct(object):
     def get_output_list(self):
         return output_list
 
+    # index of the operands are saved to each of them
     def set_command(self, op_name, quantum_time, function, inputs, outputs, arguments):
         self.quantum_time[op_name] = quantum_time
         self.function[op_name] = function
         self.inputs[op_name] = inputs
         self.outputs[op_name] = outputs
         self.arguments[op_name] = arguments
+
+    def feed_command(self, command_list):
+        self.command = command_list
 
     # utility for parsing commands
     def parse_command(self, command):
@@ -62,10 +69,22 @@ class Construct(object):
         arg_list = symbol_list[1:]
         inputs = [arg_list[index] for index in self.inputs[op]]
         outputs = [arg_list[index] for index in self.outputs[op]]
-        # NOTE assume arguments are all hexadecimal integers
         arguments = [int(arg_list[index], 0) for index in self.arguments[op]]
 
         return op, inputs, outputs, arguments
+
+    def command_ready(self):
+        op, inputs, outputs, arguments = self.parse_command(self.command[0])
+        for index in inputs:
+            if len(self.input_list[index]) == 0:
+                return False
+        return True
+
+    def command_empty(self):
+        if len(self.command) == 0:
+            return True
+        else:
+            return False
 
     # commands will be registered by the users
     # other means of detecting dependency or hazard for exact cycle 
@@ -83,11 +102,26 @@ class Construct(object):
         self.function[op](inputs, outputs, arguments)
     
     # this could be dependent on the type of construct and the input value
-    def get_quantum_time(self):
-        return self.quantum_time[self.command.pop(0)]
+    def increment_time(self, op, inputs, outputs, arguments):
+        if len(inputs) != 0:
+            # if there are inputs
+            self.crnt_time = max([self.crnt_time] + 
+                                 [self.input_list[input_name][0][0] 
+                                  for input_name in inputs])
+            self.crnt_time = self.crnt_time + self.quantum_time[op]
+        else:
+            # if there are no inputs
+            self.crnt_time = self.crnt_time + self.quantum_time[op]
+        for output in outputs:
+            self.push_output(output, None)
 
     # this could be dependent on the type of construct and the input value
     # runs the first command
-    def run_quantum(self):
+    def run_quantum(self, value_aware=True):
         op, inputs, outputs, arguments = self.parse_command(self.command.pop(0))
-        self.run_command(op, inputs, outputs, arguments)
+        if value_aware:
+            # run the command + increment time
+            self.run_command(op, inputs, outputs, arguments)
+        else:
+            # increment time
+            self.increment_time(op, inputs, outputs, arguments)

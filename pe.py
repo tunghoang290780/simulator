@@ -30,8 +30,9 @@ class ProcessingElement(Construct):
         assert mat0.shape == (arguments[0], arguments[1]), 'shape error for add'
         assert mat0.shape == mat1.shape, 'shape error for add'
         out = mat0 + mat1
-        self.push_output(outputs[0])
+        self.push_output(outputs[0], out)
     
+    # TODO value dependent timing calculation has to be implemented later
     def __init__(self, name, matmul8_time, add8_time):
         super(ProcessingElement, self).__init__(name)
         
@@ -66,12 +67,12 @@ if __name__ == '__main__':
     ofmem.add_input('pe')
     
     # force data in Memory for testing purpose
-    ifmem.command = ['store8    pe    0x000 8 4', \
-                     'load8     pe    0x000 8 4']
-    kmem.command =  ['store8    pe    0x000 8 4', \
-                     'load8     pe    0x000 8 4']
-    pe.command =    ['matmul8   ofmem ifmem kmem 8 4 8']
-    ofmem.command = ['store16   pe    0x000 8 8']
+    ifmem.feed_command(['store8    pe    0x000 8 4', \
+                        'load8     pe    0x000 8 4'])
+    kmem.feed_command( ['store8    pe    0x000 8 4', \
+                        'load8     pe    0x000 8 4'])
+    pe.feed_command(   ['matmul8   ofmem ifmem kmem 8 4 8'])
+    ofmem.feed_command(['store16   pe    0x000 8 8'])
     ifmem.input_list['pe'].append((20.0, np.array([1, 2, 3, 4, \
                                                    5, 6, 7, 8, \
                                                    9, 10, 11, 12, \
@@ -90,15 +91,17 @@ if __name__ == '__main__':
                                                   29, 30, 31, 32])))
 
     # run quantums for test
-    ifmem.run_quantum()
-    ifmem.run_quantum()
-    kmem.run_quantum()
-    kmem.run_quantum()
-    pe.run_quantum()
+    value_aware = True
+    ifmem.run_quantum(value_aware)
+    ifmem.run_quantum(value_aware)
+    kmem.run_quantum(value_aware)
+    kmem.run_quantum(value_aware)
+    pe.run_quantum(value_aware)
     print ofmem.input_list['pe'][0] # print the queue before it gets popped
-    ofmem.run_quantum()
+    ofmem.run_quantum(value_aware)
 
     # remove temporary file
-    os.remove('ifmem_file')
-    os.remove('kmem_file')
-    os.remove('ofmem_file')
+    if value_aware:
+        os.remove('ifmem_file')
+        os.remove('kmem_file')
+        os.remove('ofmem_file')
