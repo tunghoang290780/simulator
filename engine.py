@@ -63,4 +63,4 @@ class SimulationEngine(object):
             for construct_name, construct in self.constructs.items():
                 if not construct.command_empty() and construct.command_ready():
                     construct.run_quantum(self.value_aware)
-        print self.get_total_time()
+        return self.get_total_time()
