@@ -16,25 +16,25 @@ class Memory(Construct):
     # that is not complete
     def load8(self, inputs, outputs, arguments):
         #print 'load8 {} {}'.format(outputs, arguments)
-        assert os.path.exists(self.get_cid()+'_file'), 'file for memory missing'
-        mem_fd = os.open(self.get_cid()+'_file', os.O_RDWR)
+        assert os.path.exists(self.get_cid()+'_hex'), 'file for memory missing'
+        mem_fd = os.open(self.get_cid()+'_hex', os.O_RDWR)
         os.lseek(mem_fd, arguments[0], 0)
         val = np.array(array.array('b', os.read(mem_fd, arguments[1] * arguments[2])), dtype=np.int8)
         self.push_output(outputs[0], val.reshape(arguments[1], arguments[2]))
     
     def load16(self, inputs, outputs, arguments):
         #print 'load16 {} {}'.format(outputs, arguments)
-        assert os.path.exists(self.get_cid()+'_file'), 'file for memory missing'
-        mem_fd = os.open(self.get_cid()+'_file', os.O_RDWR)
+        assert os.path.exists(self.get_cid()+'_hex'), 'file for memory missing'
+        mem_fd = os.open(self.get_cid()+'_hex', os.O_RDWR)
         os.lseek(mem_fd, arguments[0], 0)
         val = np.array(array.array('h', os.read(mem_fd, arguments[1] * arguments[2])), dtype=np.int16)
         self.push_output(outputs[0], val.reshape(arguments[1], arguments[2]))
     
     def store8(self, inputs, outputs, arguments):
         #print 'store8 {} {}'.format(inputs, arguments)
-        if not os.path.exists(self.get_cid()+'_file'):
-            utils.make_file(self.get_cid()+'_file', 32*1024)
-        mem_fd = os.open(self.get_cid()+'_file', os.O_RDWR)
+        if not os.path.exists(self.get_cid()+'_hex'):
+            utils.make_file(self.get_cid()+'_hex', 32*1024)
+        mem_fd = os.open(self.get_cid()+'_hex', os.O_RDWR)
         os.lseek(mem_fd, arguments[0], 0)
         val = self.pop_input(inputs[0]).astype(np.int8)
         assert val.size == (arguments[1] * arguments[2]), 'size not matching'
@@ -42,9 +42,9 @@ class Memory(Construct):
 
     def store16(self, inputs, outputs, arguments):
         #print 'store16 {} {}'.format(inputs, arguments)
-        if not os.path.exists(self.get_cid()+'_file'):
-            utils.make_file(self.get_cid()+'_file', 32*1024)
-        mem_fd = os.open(self.get_cid()+'_file', os.O_RDWR)
+        if not os.path.exists(self.get_cid()+'_hex'):
+            utils.make_file(self.get_cid()+'_hex', 32*1024)
+        mem_fd = os.open(self.get_cid()+'_hex', os.O_RDWR)
         os.lseek(mem_fd, arguments[0], 0)
         val = self.pop_input(inputs[0]).astype(np.int16)
         assert val.size == (arguments[1] * arguments[2]), 'size not matching'
